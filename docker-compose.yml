@@ -1,0 +1,29 @@
+﻿version: "3.8"
+
+services:
+  xray:
+    build: .
+    container_name: xray
+    restart: always
+    env_file: .env
+    command: sh -c "envsubst < /etc/xray/config.json.template > /etc/xray/config.json && /usr/bin/xray -config /etc/xray/config.json"
+    volumes:
+      - ./config.json.template:/etc/xray/config.json.template
+    networks:
+      - vpn-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: always
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    env_file:
+      - .env
+    networks:
+      - vpn-net
+    depends_on:
+      - xray
+
+networks:
+  vpn-net:
+    driver: bridge

@@ -1,0 +1,17 @@
+﻿localhost {
+    # Эта директива указывает Caddy использовать локальный,
+    # самоподписанный сертификат вместо Let's Encrypt
+    tls internal
+
+    @vless {
+        path /supersecretpath
+    }
+    reverse_proxy @vless xray:10000 {
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote}
+    }
+
+    handle / {
+        respond "Hello from local Caddy!" 200
+    }
+}
